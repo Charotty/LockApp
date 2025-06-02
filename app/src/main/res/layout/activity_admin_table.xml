@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <Button
+            android:id="@+id/buttonSave"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Сохранить" />
+        <Button
+            android:id="@+id/buttonExit"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Выход" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <Button
+            android:id="@+id/buttonAdd"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Добавить" />
+        <Button
+            android:id="@+id/buttonDelete"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Удалить" />
+        <Button
+            android:id="@+id/buttonResetUser"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Сброс пользователя" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Таблица пользователей:"
+        android:paddingTop="16dp" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TableLayout
+            android:id="@+id/userTableHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TableRow>
+                <TextView android:text="id" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="ФИО" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="Должность" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="Пароль (hash)" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="RFID" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="Отпечаток" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="IV RFID" android:padding="4dp" android:textStyle="bold" />
+                <TextView android:text="IV отпечатка" android:padding="4dp" android:textStyle="bold" />
+            </TableRow>
+        </TableLayout>
+    </HorizontalScrollView>
+
+    <ListView
+        android:id="@+id/userTable"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:dividerHeight="1dp" />
+
+</LinearLayout>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="4dp">
+    <TextView android:id="@+id/textId" android:layout_width="60dp" android:layout_height="wrap_content" android:textStyle="bold"/>
+    <TextView android:id="@+id/textFio" android:layout_width="150dp" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/textPosition" android:layout_width="100dp" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/textPassword" android:layout_width="120dp" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/textRfid" android:layout_width="120dp" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/textFingerprint" android:layout_width="120dp" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/textIvRfid" android:layout_width="100dp" android:layout_height="wrap_content" />
+    <TextView android:id="@+id/textIvFingerprint" android:layout_width="100dp" android:layout_height="wrap_content" />
+</LinearLayout>
