@@ -5,15 +5,15 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Включаем prefs и локальные БД -->
+        <include domain="sharedpref" path="auth_prefs.xml"/>
+        <include domain="database" path="users.db"/>
+        <include domain="database" path="eventlog.db"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <!-- При переносе устройства также включаем -->
+        <include domain="sharedpref" path="auth_prefs.xml"/>
+        <include domain="database" path="users.db"/>
+        <include domain="database" path="eventlog.db"/>
     </device-transfer>
-    -->
 </data-extraction-rules>

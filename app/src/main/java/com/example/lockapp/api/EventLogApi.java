@@ -8,9 +8,9 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 public interface EventLogApi {
-    @GET("/events")
+    @GET("events")
     Call<List<EventLog>> getEvents();
 
-    @POST("/events")
+    @POST("events")
     Call<EventLog> addEvent(@Body EventLog eventLog);
 }

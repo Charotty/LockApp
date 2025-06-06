@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.LinearLayout;
 import com.example.lockapp.api.ApiClient;
 import com.example.lockapp.api.UserApi;
 import retrofit2.Call;
@@ -57,11 +58,23 @@ public class AdminTableActivity extends Activity {
                     users.clear();
                     users.addAll(response.body());
                     adapter.notifyDataSetChanged();
+                } else {
+                    String errorMsg = "Ошибка: " + response.code();
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMsg += ", " + response.errorBody().string();
+                        }
+                    } catch (Exception e) {
+                        errorMsg += ", errorBody parse error: " + e.getMessage();
+                    }
+                    Toast.makeText(AdminTableActivity.this, "Ошибка загрузки пользователей: " + errorMsg, Toast.LENGTH_LONG).show();
+                    android.util.Log.e("API_ERROR", errorMsg);
                 }
             }
             @Override
             public void onFailure(Call<List<User>> call, Throwable t) {
-                Toast.makeText(AdminTableActivity.this, "Ошибка загрузки пользователей с сервера", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminTableActivity.this, "Ошибка загрузки пользователей: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                android.util.Log.e("API_ERROR", "onFailure: ", t);
             }
         });
 
@@ -69,23 +82,7 @@ public class AdminTableActivity extends Activity {
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Пример добавления пользователя через API (можно доработать под ваш диалог)
-                User newUser = new User();
-                newUser.fio = "Новый пользователь";
-                newUser.password = Integer.toHexString("1234".hashCode());
-                userApi.addUser(newUser).enqueue(new Callback<User>() {
-                    @Override
-                    public void onResponse(Call<User> call, Response<User> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            users.add(response.body());
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<User> call, Throwable t) {
-                        Toast.makeText(AdminTableActivity.this, "Ошибка добавления пользователя", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                showAddPopup();
             }
         });
 
@@ -127,7 +124,24 @@ public class AdminTableActivity extends Activity {
                         .setMessage("ФИО: " + user.fio)
                         .setPositiveButton("Сбросить", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                // TODO: реализовать сброс RFID и отпечатка через API
+                                // Вызов API сброса
+                                UserApi api = ApiClient.getClient().create(UserApi.class);
+                                api.resetUser(user.id).enqueue(new Callback<User>() {
+                                    @Override
+                                    public void onResponse(Call<User> call, Response<User> response) {
+                                        if (response.isSuccessful()) {
+                                            users.set(selectedUserPosition, response.body());
+                                            adapter.notifyDataSetChanged();
+                                            Toast.makeText(AdminTableActivity.this, "Сброс выполнен", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(AdminTableActivity.this, "Ошибка сброса: " + response.code(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                    @Override
+                                    public void onFailure(Call<User> call, Throwable t) {
+                                        Toast.makeText(AdminTableActivity.this, "Сетевая ошибка при сбросе", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             }
                         })
                         .setNegativeButton("Отмена", null)
@@ -177,32 +191,104 @@ public class AdminTableActivity extends Activity {
         builder.show();
     }
 
-    // --- Заглушка: добавить нового пользователя с ожиданием ---
+    // --- Форма добавления нового пользователя ---
     private void showAddUserWithLoading() {
-        // Здесь показываем ProgressDialog, имитируем обмен с Arduino, затем показываем форму добавления
-        Toast.makeText(this, "Ожидание ответа от Arduino (заглушка)...", Toast.LENGTH_SHORT).show();
-        // TODO: реализовать реальный обмен с Arduino и форму
+        // Показать форму ввода данных нового пользователя
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Добавить нового пользователя");
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        final EditText inputFio = new EditText(this);
+        inputFio.setHint("ФИО"); layout.addView(inputFio);
+        final EditText inputPosition = new EditText(this);
+        inputPosition.setHint("Должность"); layout.addView(inputPosition);
+        final EditText inputPassword = new EditText(this);
+        inputPassword.setHint("Пароль");
+        inputPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(inputPassword);
+        builder.setView(layout);
+        builder.setPositiveButton("Добавить", (dialog, which) -> {
+            String fio = inputFio.getText().toString().trim();
+            String pos = inputPosition.getText().toString().trim();
+            String pwd = inputPassword.getText().toString();
+            if (fio.isEmpty() || pwd.isEmpty()) {
+                Toast.makeText(this, "ФИО и пароль обязательны", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            UserApi api = ApiClient.getClient().create(UserApi.class);
+            User newUser = new User();
+            newUser.fio = fio;
+            newUser.position = pos;
+            newUser.password = Integer.toHexString(pwd.hashCode());
+            api.addUser(newUser).enqueue(new Callback<User>() {
+                @Override public void onResponse(Call<User> call, Response<User> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        users.add(response.body()); adapter.notifyDataSetChanged();
+                        Toast.makeText(AdminTableActivity.this, "Пользователь добавлен", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override public void onFailure(Call<User> call, Throwable t) {
+                    Toast.makeText(AdminTableActivity.this, "Ошибка добавления", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        builder.setNegativeButton("Отмена", null);
+        builder.show();
     }
 
-    // --- Заглушка: добавить RFID пользователю ---
+    // --- Добавить RFID пользователю ---
     private void addRfidToUser() {
-        if (selectedUserPosition < 0 || selectedUserPosition >= users.size()) {
-            Toast.makeText(this, "Сначала выберите пользователя!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // Здесь показываем ProgressDialog, имитируем обмен с Arduino, затем обновляем поле RFID
-        Toast.makeText(this, "Добавление RFID (заглушка)...", Toast.LENGTH_SHORT).show();
-        // TODO: реализовать реальный обмен с Arduino, обновление поля и отправку на сервер
+        // Запрос ввода нового RFID
+        User user = users.get(selectedUserPosition);
+        AlertDialog.Builder builderR = new AlertDialog.Builder(this);
+        builderR.setTitle("Введите RFID");
+        final EditText inputR = new EditText(this);
+        inputR.setHint("RFID (hex)");
+        builderR.setView(inputR);
+        builderR.setPositiveButton("ОК", (dialog, which) -> {
+            String rfid = inputR.getText().toString().trim();
+            if (rfid.isEmpty()) return;
+            UserApi api = ApiClient.getClient().create(UserApi.class);
+            User upd = new User(); upd.id = user.id; upd.rfid = rfid;
+            api.updateUser(user.id, upd).enqueue(new Callback<User>() {
+                @Override public void onResponse(Call<User> call, Response<User> r) {
+                    if (r.isSuccessful() && r.body() != null) {
+                        users.set(selectedUserPosition, r.body()); adapter.notifyDataSetChanged();
+                        Toast.makeText(AdminTableActivity.this, "RFID обновлен", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override public void onFailure(Call<User> call, Throwable t) {
+                    Toast.makeText(AdminTableActivity.this, "Ошибка обновления RFID", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }); builderR.setNegativeButton("Отмена", null); builderR.show();
     }
 
-    // --- Заглушка: добавить отпечаток пользователю ---
+    // --- Добавить отпечаток пользователю ---
     private void addFingerprintToUser() {
-        if (selectedUserPosition < 0 || selectedUserPosition >= users.size()) {
-            Toast.makeText(this, "Сначала выберите пользователя!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // Здесь показываем ProgressDialog, имитируем обмен с Arduino, затем обновляем поле отпечаток
-        Toast.makeText(this, "Добавление отпечатка (заглушка)...", Toast.LENGTH_SHORT).show();
-        // TODO: реализовать реальный обмен с Arduino, обновление поля и отправку на сервер
+        // Запрос ввода нового отпечатка
+        User user = users.get(selectedUserPosition);
+        AlertDialog.Builder builderF = new AlertDialog.Builder(this);
+        builderF.setTitle("Введите отпечаток");
+        final EditText inputF = new EditText(this);
+        inputF.setHint("Fingerprint (base64)");
+        builderF.setView(inputF);
+        builderF.setPositiveButton("ОК", (dialog, which) -> {
+            String fp = inputF.getText().toString().trim();
+            if (fp.isEmpty()) return;
+            UserApi api = ApiClient.getClient().create(UserApi.class);
+            User upd = new User(); upd.id = user.id; upd.fingerprint = fp;
+            api.updateUser(user.id, upd).enqueue(new Callback<User>() {
+                @Override public void onResponse(Call<User> call, Response<User> r) {
+                    if (r.isSuccessful() && r.body() != null) {
+                        users.set(selectedUserPosition, r.body()); adapter.notifyDataSetChanged();
+                        Toast.makeText(AdminTableActivity.this, "Отпечаток обновлен", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override public void onFailure(Call<User> call, Throwable t) {
+                    Toast.makeText(AdminTableActivity.this, "Ошибка обновления отпечатка", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }); builderF.setNegativeButton("Отмена", null); builderF.show();
     }
 }
