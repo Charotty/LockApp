@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/editFio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="ФИО"/>
+
+        <EditText
+            android:id="@+id/editPosition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Должность/уровень доступа"/>
+
+        <EditText
+            android:id="@+id/editPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Пароль"/>
+
+        <EditText
+            android:id="@+id/editRfid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="RFID"/>
+
+        <EditText
+            android:id="@+id/editFingerprint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Отпечаток"/>
+
+        <EditText
+            android:id="@+id/editIvRfid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="IV RFID (опц.)"/>
+
+        <EditText
+            android:id="@+id/editIvFingerprint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="IV Fingerprint (опц.)"/>
+    </LinearLayout>
+</ScrollView>

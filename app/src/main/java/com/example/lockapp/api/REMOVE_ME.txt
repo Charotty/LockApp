@@ -1,0 +1,9 @@
+Удалить следующие файлы:
+- ApiClient.java
+- AuthApi.java
+- EventLogApi.java
+- UserApi.java
+- model/AuthResponse.java
+- model/LoginRequest.java
+
+Они больше не используются, серверная логика полностью удалена.
