@@ -10,8 +10,11 @@
         android:id="@+id/editTextUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Логин"
-        android:inputType="textPersonName"
+        android:hint="ФИО"
+        android:inputType="text"
+        android:importantForAutofill="yes"
+        android:autofillHints="name"
+        android:maxLines="1"
         android:layout_marginBottom="16dp" />
 
     <EditText
@@ -27,5 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Войти" />
+
+    <!-- Кнопка WiFi убрана, теперь только локальный вход -->
 
 </LinearLayout>

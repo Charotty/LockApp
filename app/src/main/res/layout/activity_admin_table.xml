@@ -19,31 +19,6 @@
                 android:orientation="horizontal"
                 android:gravity="center">
                 <Button
-                    android:id="@+id/buttonSave"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Сохранить"
-                    android:minHeight="56dp"
-                    android:minWidth="96dp"
-                    android:layout_margin="4dp" />
-                <Button
-                    android:id="@+id/buttonExit"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Выход"
-                    android:minHeight="56dp"
-                    android:minWidth="96dp"
-                    android:layout_margin="4dp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
-                <Button
                     android:id="@+id/buttonAdd"
                     android:layout_width="0dp"
                     android:layout_weight="1"
@@ -67,6 +42,31 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="Сброс пользователя"
+                    android:minHeight="56dp"
+                    android:minWidth="96dp"
+                    android:layout_margin="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                <Button
+                    android:id="@+id/buttonSyncFromArduino"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Обновить с Arduino"
+                    android:minHeight="56dp"
+                    android:minWidth="96dp"
+                    android:layout_margin="4dp" />
+                <Button
+                    android:id="@+id/buttonSyncToArduino"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Отправить на Arduino"
                     android:minHeight="56dp"
                     android:minWidth="96dp"
                     android:layout_margin="4dp" />
@@ -106,5 +106,34 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:dividerHeight="1dp" />
+
+    <!-- Переносим кнопки вниз и заменяем на иконки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom|end"
+        android:layout_gravity="bottom|end"
+        android:layout_marginTop="24dp"
+        android:paddingTop="24dp">
+        <ImageButton
+            android:id="@+id/buttonSave"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="56dp"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_save"
+            android:contentDescription="Сохранить"
+            android:layout_margin="4dp" />
+        <ImageButton
+            android:id="@+id/buttonExit"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="56dp"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="Выход"
+            android:layout_margin="4dp" />
+    </LinearLayout>
 
 </LinearLayout>

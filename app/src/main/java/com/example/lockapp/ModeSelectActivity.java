@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -52,6 +53,13 @@ public class ModeSelectActivity extends Activity {
     private static final int BLUETOOTH_PERMISSION_REQUEST = 2001;
     private static final int BLUETOOTH_ENABLE_REQUEST = 2002;
 
+    // Настройки SSID и Bluetooth (будут храниться в SharedPreferences)
+    private static final String PREFS = "lockapp_prefs";
+    private static final String KEY_SSID = "arduino_wifi_ssid";
+    private static final String KEY_BTNAME = "arduino_bluetooth_name";
+    private String arduinoWifiSsid;
+    private String arduinoBtName;
+
     private WifiManager wifiManager;
     private BluetoothAdapter bluetoothAdapter;
     private final List<BluetoothDevice> availableDevices = new ArrayList<>();
@@ -62,6 +70,10 @@ public class ModeSelectActivity extends Activity {
     private static final String WIFI_MODULE_URL = "http://192.168.4.1"; // Arduino Wi-Fi module IP
     private final OkHttpClient simpleClient = new OkHttpClient();
 
+    // --- WiFi Arduino connection state ---
+    private String arduinoIp = null;
+    private int arduinoPort = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,14 +83,80 @@ public class ModeSelectActivity extends Activity {
         Button buttonBluetooth = findViewById(R.id.buttonBluetooth);
         Button buttonAdmin = findViewById(R.id.buttonAdmin);
         Button buttonEventLog = findViewById(R.id.buttonEventLog);
+        Button buttonLockWifi = findViewById(R.id.buttonLockWifi);
+        Button buttonLockBluetooth = findViewById(R.id.buttonLockBluetooth);
+        Button buttonSettings = findViewById(R.id.buttonSettings);
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        buttonWifi.setOnClickListener(v -> checkLocationPermission());
-        buttonBluetooth.setOnClickListener(v -> checkBluetoothPermissions());
+        // Загрузка настроек
+        loadSettings();
+
+        buttonWifi.setOnClickListener(v -> {
+            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            startActivityForResult(intent, WIFI_ENABLE_REQUEST);
+        });
+        buttonBluetooth.setOnClickListener(v -> {
+            Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+            startActivity(intent);
+        });
         buttonAdmin.setOnClickListener(v -> startActivity(new Intent(ModeSelectActivity.this, AdminTableActivity.class)));
         buttonEventLog.setOnClickListener(v -> startActivity(new Intent(ModeSelectActivity.this, EventLogActivity.class)));
+        buttonLockWifi.setOnClickListener(v -> {
+            if (!isConnectedToArduinoWifi()) {
+                showToast("Сначала подключитесь к WiFi замка через 'Вход по WiFi'");
+            } else {
+                showLockControlDialogWifi();
+            }
+        });
+        buttonLockBluetooth.setOnClickListener(v -> {
+            if (!isConnectedToArduinoBluetooth()) {
+                showToast("Сначала подключитесь к Bluetooth замка через 'Вход по Bluetooth'");
+            } else {
+                showLockControlDialogBluetooth();
+            }
+        });
+        buttonSettings.setOnClickListener(v -> showSettingsDialog());
+    }
+
+    private boolean isConnectedToArduinoWifi() {
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo != null && wifiInfo.getSSID() != null) {
+            String ssid = wifiInfo.getSSID();
+            // Убираем кавычки, если есть
+            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                ssid = ssid.substring(1, ssid.length() - 1);
+            }
+            return arduinoWifiSsid.equals(ssid);
+        }
+        return false;
+    }
+
+    private boolean isConnectedToArduinoBluetooth() {
+        if (bluetoothAdapter != null && bluetoothAdapter.isEnabled()) {
+            Set<BluetoothDevice> paired = bluetoothAdapter.getBondedDevices();
+            if (paired != null) {
+                for (BluetoothDevice device : paired) {
+                    if (arduinoBtName.equals(device.getName())) {
+                        // Можно добавить проверку на активное соединение, если реализовано
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isConnectedToArduinoWifi()) {
+            showToast("Устройство подключено к замку по WiFi");
+        }
+        if (isConnectedToArduinoBluetooth()) {
+            showToast("Устройство подключено к замку по Bluetooth");
+        }
     }
 
     // ================= Wi-Fi Функционал =================
@@ -226,24 +304,6 @@ public class ModeSelectActivity extends Activity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == BLUETOOTH_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                handleBluetoothAuthentication();
-            } else {
-                showToast("Разрешения Bluetooth не предоставлены");
-            }
-        } else if (requestCode == LOCATION_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                handleWifiAuthentication();
-            } else {
-                showToast("Нужно разрешение геолокации");
-            }
-        }
-    }
-
     private void handleBluetoothAuthentication() {
         if (bluetoothAdapter == null) {
             showToast("Bluetooth не поддерживается"); return;
@@ -259,16 +319,6 @@ public class ModeSelectActivity extends Activity {
                     .setNegativeButton("Нет", null)
                     .show();
         } else {
-            scanBluetoothDevices();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == WIFI_ENABLE_REQUEST && resultCode == RESULT_OK) {
-            scanAvailableNetworks();
-        } else if (requestCode == BLUETOOTH_ENABLE_REQUEST && resultCode == RESULT_OK) {
             scanBluetoothDevices();
         }
     }
@@ -354,33 +404,150 @@ public class ModeSelectActivity extends Activity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    // Диалог управления замком по Wi-Fi
+    // Диалог для подключения к Arduino по WiFi
+    private void showWifiConnectDialog() {
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        final android.widget.EditText editIp = new android.widget.EditText(this);
+        editIp.setHint("IP Arduino (например, 192.168.1.100)");
+        final android.widget.EditText editPort = new android.widget.EditText(this);
+        editPort.setHint("Порт (например, 8888)");
+        editPort.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        layout.addView(editIp);
+        layout.addView(editPort);
+        new AlertDialog.Builder(this)
+                .setTitle("Вход по WiFi")
+                .setView(layout)
+                .setPositiveButton("Подключиться", (dialog, whichBtn) -> {
+                    String ip = editIp.getText().toString().trim();
+                    String portStr = editPort.getText().toString().trim();
+                    if (ip.isEmpty() || portStr.isEmpty()) {
+                        showToast("Введите IP и порт");
+                        return;
+                    }
+                    int port;
+                    try {
+                        port = Integer.parseInt(portStr);
+                    } catch (NumberFormatException e) {
+                        showToast("Некорректный порт");
+                        return;
+                    }
+                    // Пробуем подключиться к Arduino
+                    testWifiConnection(ip, port);
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
+
+    // Проверка подключения к Arduino по WiFi (без отдельной Activity)
+    private void testWifiConnection(String ip, int port) {
+        new Thread(() -> {
+            try (Socket socket = new Socket()) {
+                socket.connect(new java.net.InetSocketAddress(ip, port), 3000);
+                runOnUiThread(() -> {
+                    arduinoIp = ip;
+                    arduinoPort = port;
+                    showToast("Успешно подключено к Arduino по WiFi");
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> showToast("Ошибка подключения: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    // Диалог управления замком по WiFi (без ввода IP/порта)
     private void showLockControlDialogWifi() {
         String[] actions = {"Открыть замок", "Закрыть замок"};
         new AlertDialog.Builder(this)
-                .setTitle("Управление замком (Wi-Fi)")
+                .setTitle("Управление замком (WiFi)")
                 .setItems(actions, (d, which) -> {
-                    String cmd = which == 0 ? "/open" : "/close";
+                    String cmd = which == 0 ? "open" : "close";
                     sendWifiCommand(cmd);
                 })
                 .setNegativeButton("Отмена", null)
                 .show();
     }
 
-    private void sendWifiCommand(String path) {
-        Request req = new Request.Builder()
-                .url(WIFI_MODULE_URL + path)
-                .get()
-                .build();
-        simpleClient.newCall(req).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
-                runOnUiThread(() -> showToast("Ошибка Wi-Fi: " + e.getMessage()));
+    // Отправка команды на Arduino по WiFi (использует сохранённые ip/port)
+    private void sendWifiCommand(String cmd) {
+        new Thread(() -> {
+            try (Socket socket = new Socket()) {
+                socket.connect(new java.net.InetSocketAddress(arduinoIp, arduinoPort), 3000);
+                OutputStream out = socket.getOutputStream();
+                out.write((cmd + "\n").getBytes());
+                out.flush();
+                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(socket.getInputStream()));
+                String response = in.readLine();
+                runOnUiThread(() -> showToast("Ответ: " + response));
+            } catch (Exception e) {
+                runOnUiThread(() -> showToast("Ошибка WiFi: " + e.getMessage()));
             }
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                runOnUiThread(() -> showToast(response.isSuccessful() ? "OK: " + response.code() : "Ошибка: " + response.code()));
-                response.close();
+        }).start();
+    }
+
+    private void loadSettings() {
+        android.content.SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        arduinoWifiSsid = prefs.getString(KEY_SSID, "ArduinoLock");
+        arduinoBtName = prefs.getString(KEY_BTNAME, "ArduinoBT");
+    }
+
+    private void saveSettings(String ssid, String btName) {
+        android.content.SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        prefs.edit().putString(KEY_SSID, ssid).putString(KEY_BTNAME, btName).apply();
+        arduinoWifiSsid = ssid;
+        arduinoBtName = btName;
+    }
+
+    private void showSettingsDialog() {
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        final android.widget.EditText editSsid = new android.widget.EditText(this);
+        editSsid.setHint("SSID WiFi Arduino");
+        editSsid.setText(arduinoWifiSsid);
+        final android.widget.EditText editBt = new android.widget.EditText(this);
+        editBt.setHint("Имя Bluetooth Arduino");
+        editBt.setText(arduinoBtName);
+        layout.addView(editSsid);
+        layout.addView(editBt);
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Настройки Arduino")
+                .setView(layout)
+                .setPositiveButton("Сохранить", (d, w) -> {
+                    String ssid = editSsid.getText().toString().trim();
+                    String bt = editBt.getText().toString().trim();
+                    saveSettings(ssid, bt);
+                    android.widget.Toast.makeText(this, "Настройки сохранены", android.widget.Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == WIFI_ENABLE_REQUEST && resultCode == RESULT_OK) {
+            scanAvailableNetworks();
+        } else if (requestCode == BLUETOOTH_ENABLE_REQUEST && resultCode == RESULT_OK) {
+            scanBluetoothDevices();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == BLUETOOTH_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                handleBluetoothAuthentication();
+            } else {
+                showToast("Разрешения Bluetooth не предоставлены");
             }
-        });
+        } else if (requestCode == LOCATION_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                handleWifiAuthentication();
+            } else {
+                showToast("Нужно разрешение геолокации");
+            }
+        }
     }
 
     @Override

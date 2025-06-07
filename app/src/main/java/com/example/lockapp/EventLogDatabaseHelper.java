@@ -1,6 +1,7 @@
 package com.example.lockapp;
 
 import android.content.Context;
+import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -37,5 +38,18 @@ public class EventLogDatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EVENT_LOG);
         onCreate(db);
+    }
+
+    // Добавление события в БД
+    public void insertEvent(EventLog event) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_FIO, event.fio);
+        values.put(COLUMN_POSITION, event.position);
+        values.put(COLUMN_METHOD, event.method);
+        values.put(COLUMN_RESULT, event.result);
+        values.put(COLUMN_ATTEMPT, event.attempt);
+        values.put(COLUMN_TIMESTAMP, event.timestamp);
+        db.insert(TABLE_EVENT_LOG, null, values);
     }
 }
