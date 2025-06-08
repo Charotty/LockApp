@@ -121,6 +121,100 @@
         android:layout_marginTop="8dp"/>
 
     <Button
+        android:id="@+id/buttonCheckConnection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Проверить соединение"
+        android:drawableLeft="@android:drawable/ic_menu_info_details"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/teal_200"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="Проверить соединение с замком" />
+
+    <!-- Индикатор статуса подключения с иконкой -->
+    <LinearLayout
+        android:id="@+id/connectionStatusLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp">
+
+        <View
+            android:id="@+id/connectionStatusIndicator"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/status_indicator_grey" />
+
+        <ImageView
+            android:id="@+id/connectionTypeIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginRight="8dp"
+            android:src="@android:drawable/ic_menu_help"
+            android:contentDescription="Тип соединения" />
+
+        <TextView
+            android:id="@+id/connectionStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Статус: неизвестно"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Диагностика соединения -->
+    <LinearLayout
+        android:id="@+id/diagnosticsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:background="#F0F0F0"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/textWifiInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WiFi: -"
+            android:textSize="14sp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/textBtInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bluetooth: -"
+            android:textSize="14sp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/textLastSuccess"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Последнее успешное соединение: -"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonDiagnosticsDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Подробнее о соединении"
+        android:layout_marginTop="4dp"
+        android:backgroundTint="@color/teal_200"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="Показать расширенную диагностику" />
+
+    <Button
         android:id="@+id/buttonAdmin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
