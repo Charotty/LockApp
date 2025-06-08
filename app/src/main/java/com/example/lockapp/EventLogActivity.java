@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +40,9 @@ public class EventLogActivity extends Activity {
             String status = statusEdit.getText().toString();
             loadEvents(date, user, status);
         });
+        // Кнопка "Назад" (стрелка)
+        ImageButton backBtn = findViewById(R.id.buttonBack);
+        backBtn.setOnClickListener(v -> finish());
     }
 
     private void loadEvents(String date, String user, String status) {

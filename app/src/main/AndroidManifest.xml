@@ -9,23 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- Bluetooth разрешения с учетом версий Android -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-
-    <!-- Разрешения для Android 12 (API 31) и выше -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_SCAN"
-        android:usesPermissionFlags="neverForLocation"
-        tools:targetApi="s" />
-
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_CONNECT"
-        tools:targetApi="s" />
-
     <!-- Фильтры оборудования -->
     <uses-feature android:name="android.hardware.wifi" android:required="true" />
-    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -65,8 +50,7 @@
 
         <activity android:name=".EventLogActivity" android:exported="false" />
 
-        <!-- Сервисы (пример, если будут добавлены позже) -->
-        <!-- <service android:name=".BluetoothConnectionService" /> -->
+        <activity android:name=".SettingsActivity" android:exported="false" />
 
     </application>
 

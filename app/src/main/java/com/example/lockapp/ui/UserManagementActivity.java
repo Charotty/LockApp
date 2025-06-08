@@ -13,13 +13,10 @@ import com.example.lockapp.R;
 import com.example.lockapp.User;
 import com.example.lockapp.UserAdapter;
 import com.example.lockapp.UserDatabaseHelper;
-import com.example.lockapp.api.BluetoothHelper;
-import com.example.lockapp.api.UserParser;
 import java.util.List;
 
 public class UserManagementActivity extends Activity {
     private UserDatabaseHelper dbHelper;
-    private BluetoothHelper bluetoothHelper;
     private List<User> users;
     private UserAdapter adapter;
 
@@ -28,7 +25,6 @@ public class UserManagementActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_management);
         dbHelper = new UserDatabaseHelper(this);
-        bluetoothHelper = new BluetoothHelper(this);
         ListView listView = findViewById(R.id.userListView);
         Button addButton = findViewById(R.id.addUserButton);
         Button exportButton = findViewById(R.id.exportUsersButton);
@@ -106,12 +102,6 @@ public class UserManagementActivity extends Activity {
 
     private void exportUsers() {
         List<User> allUsers = dbHelper.getAllUsers();
-        String usersCsv = UserParser.toCSV(allUsers);
-        boolean sent = bluetoothHelper.sendData(usersCsv);
-        if (sent) {
-            Toast.makeText(this, "Пользователи отправлены на Arduino", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Ошибка отправки через Bluetooth", Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(this, "Экспорт пользователей не реализован", Toast.LENGTH_SHORT).show();
     }
 }
