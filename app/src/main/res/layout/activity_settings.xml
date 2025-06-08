@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Настройки базы данных"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/buttonExportUsersDb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выгрузить базу пользователей (users.db)"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/buttonImportUsersDb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Загрузить базу пользователей (users.db)"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/buttonExportLogDb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выгрузить журнал событий (eventlog.db)"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/buttonImportLogDb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Загрузить журнал событий (eventlog.db)"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:id="@+id/textViewBtNameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Имя Bluetooth-устройства ESP" />
+    <EditText
+        android:id="@+id/editTextBtName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="например, ArduinoBT" />
+    <Button
+        android:id="@+id/buttonSaveBtName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Сохранить имя Bluetooth" />
+
+</LinearLayout>

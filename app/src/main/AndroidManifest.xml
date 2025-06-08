@@ -65,6 +65,8 @@
 
         <activity android:name=".EventLogActivity" android:exported="false" />
 
+        <activity android:name=".SettingsActivity" android:exported="false" />
+
         <!-- Сервисы (пример, если будут добавлены позже) -->
         <!-- <service android:name=".BluetoothConnectionService" /> -->
 

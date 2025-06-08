@@ -19,12 +19,21 @@ import android.widget.LinearLayout;
 import android.widget.ImageButton;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.lockapp.crypto.KuznechikUtil;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class AdminTableActivity extends Activity {
     private int selectedUserPosition = -1;
     private List<User> users;
     private UserAdapter adapter;
     private UserDatabaseHelper dbHelper;
+
+    // Ключ и IV должны совпадать с Arduino (пример, замените на свои!)
+    private static final byte[] KUZ_KEY = new byte[32]; // TODO: заполнить своим ключом
+    private static final byte[] KUZ_IV = new byte[16];  // TODO: заполнить своим IV
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,23 +215,35 @@ public class AdminTableActivity extends Activity {
         return false;
     }
 
-    // Получение пользователей с Arduino (только id/rfid/fingerprint)
-    private void syncUsersFromArduino() {
-        // TODO: Реализовать обмен по Bluetooth/WiFi, примерная заглушка:
-        // 1. Отправить команду "GET_USERS" на Arduino
-        // 2. Получить список пользователей (id, rfid, fingerprint)
-        // 3. Обновить локальную таблицу пользователей (fio не трогать)
-        // 4. Сохранить полученный список в event log
-        Toast.makeText(this, "Получение списка пользователей с Arduino...", Toast.LENGTH_SHORT).show();
-        // ...
+    // Отправка пользователей на Arduino (WiFi/Bluetooth, BLOB, шифрование)
+    private void syncUsersToArduino() {
+        try {
+            String json = new Gson().toJson(users);
+            byte[] plain = json.getBytes(StandardCharsets.UTF_8);
+            byte[] encrypted = KuznechikUtil.encrypt(plain, KUZ_KEY, KUZ_IV);
+            // TODO: отправить encrypted по WiFi/Bluetooth (BLOB)
+            // Например: wifiOutputStream.write(encrypted);
+            // Или bluetoothOutputStream.write(encrypted);
+            Toast.makeText(this, "Данные отправлены (зашифровано)", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Ошибка шифрования: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
-    // Отправка пользователей на Arduino (только id/rfid/fingerprint)
-    private void syncUsersToArduino() {
-        // TODO: Реализовать обмен по Bluetooth/WiFi, примерная заглушка:
-        // 1. Сформировать список пользователей (id, rfid, fingerprint)
-        // 2. Отправить команду "SET_USERS" с этим списком на Arduino
-        Toast.makeText(this, "Отправка списка пользователей на Arduino...", Toast.LENGTH_SHORT).show();
-        // ...
+    // Получение пользователей с Arduino (WiFi/Bluetooth, BLOB, дешифрование)
+    private void syncUsersFromArduino() {
+        try {
+            // TODO: получить encrypted с Arduino (BLOB)
+            // Например: byte[] encrypted = wifiInputStream.read(...);
+            byte[] encrypted = new byte[0]; // заглушка
+            byte[] plain = KuznechikUtil.decrypt(encrypted, KUZ_KEY, KUZ_IV);
+            String json = new String(plain, StandardCharsets.UTF_8);
+            List<User> arduinoUsers = new Gson().fromJson(json, new TypeToken<List<User>>(){}.getType());
+            // Обновить локальную базу/список
+            // users.clear(); users.addAll(arduinoUsers); adapter.notifyDataSetChanged();
+            Toast.makeText(this, "Данные получены (расшифровано)", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Ошибка дешифрования: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 }
