@@ -70,15 +70,11 @@ public class ModeSelectActivity extends Activity {
 
     // --- WiFi параметры ESP ---
     // Для режима AP (точка доступа):
-    private static final String ESP_AP_IP = "192.168.4.2";
-    // Для режима STA (ESP в домашней сети):
-    private static final String ESP_STA_IP = "192.168.1.42"; // <-- Замените на ваш статический IP, если нужен другой
+    private static final String ESP_AP_IP = "192.168.4.1";
     private static final int ESP_PORT = 8266; // Порт по умолчанию
 
     private String getCurrentEspIp() {
-        // Можно добавить автоопределение по SSID, но для простоты — используем AP IP
         return ESP_AP_IP;
-        // Если нужно выбрать другой режим — возвращайте ESP_STA_IP
     }
 
     // --- WiFi Arduino connection state ---
@@ -106,6 +102,25 @@ public class ModeSelectActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mode_select);
+
+        // Запросить все необходимые разрешения на старте
+        String[] permissions = {
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION,
+            android.Manifest.permission.ACCESS_WIFI_STATE,
+            android.Manifest.permission.CHANGE_WIFI_STATE,
+            android.Manifest.permission.ACCESS_NETWORK_STATE,
+            android.Manifest.permission.INTERNET
+        };
+        List<String> toRequest = new ArrayList<>();
+        for (String perm : permissions) {
+            if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {
+                toRequest.add(perm);
+            }
+        }
+        if (!toRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(this, toRequest.toArray(new String[0]), 100);
+        }
 
         Button buttonWifi = findViewById(R.id.buttonWifi);
         Button buttonAdmin = findViewById(R.id.buttonAdmin);
@@ -147,13 +162,13 @@ public class ModeSelectActivity extends Activity {
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         if (wifiInfo != null && wifiInfo.getSSID() != null) {
             String ssid = wifiInfo.getSSID();
-            // Убираем кавычки, если есть
             if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
                 ssid = ssid.substring(1, ssid.length() - 1);
             }
-            // Для ESP AP часто бывает <unknown ssid>
-            if ("<unknown ssid>".equals(ssid)) return true;
-            return arduinoWifiSsid.equals(ssid);
+            if ("<unknown ssid>".equals(ssid) || ssid.contains("ESP")) return true;
+            int ip = wifiInfo.getIpAddress();
+            String ipStr = intToIp(ip);
+            if (ipStr.startsWith("192.168.4.")) return true;
         }
         return false;
     }
